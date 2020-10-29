@@ -1,0 +1,332 @@
+{
+	"info": {
+		"_postman_id": "ee7fd1da-887e-4a21-b9b7-1dfb535b66e6",
+		"name": "GitHub Issue Automation Copy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "List repositories",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{gitHubPassword}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{gitHubID}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.github.com/users/:user/repos",
+					"protocol": "https",
+					"host": [
+						"api",
+						"github",
+						"com"
+					],
+					"path": [
+						"users",
+						":user",
+						"repos"
+					],
+					"variable": [
+						{
+							"key": "user",
+							"value": "{{gitHubID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post repository issue",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f024caf7-f61c-46e9-90b6-ea8eefa6d021",
+						"exec": [
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Repository issue posted\", function(){\r",
+							"    pm.expect(Number(response.number)).to.be.greaterThan(0);  \r",
+							"});\r",
+							"\r",
+							"pm.environment.set(\"last_repo_issue_number\", response.number);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{gitHubPassword}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{gitHubID}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"New repository issue\", \r\n    \"body\": \"Test issue to be added.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.github.com/repos/:user/:repo/issues",
+					"protocol": "https",
+					"host": [
+						"api",
+						"github",
+						"com"
+					],
+					"path": [
+						"repos",
+						":user",
+						":repo",
+						"issues"
+					],
+					"variable": [
+						{
+							"key": "user",
+							"value": "{{gitHubID}}"
+						},
+						{
+							"key": "repo",
+							"value": "{{repositoryName}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List repository issues",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "65e66037-19f8-4c46-9aa7-777f4551198f",
+						"exec": [
+							"if(pm.environment.get(\"last_repo_issue\") == null){\r",
+							"    pm.environment.set(\"last_repo_issue\", \"\");\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "1ecc01b1-131c-4886-93aa-46e03a74fcac",
+						"exec": [
+							"console.log(pm.response.json());\r",
+							"\r",
+							"pm.test(\"Repository issues available\", function(){\r",
+							"    let response = pm.response.json();\r",
+							"    //pm.expect(response).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(response).not.to.be.empty;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{gitHubPassword}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{gitHubID}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.github.com/repos/:user/:repo/issues",
+					"protocol": "https",
+					"host": [
+						"api",
+						"github",
+						"com"
+					],
+					"path": [
+						"repos",
+						":user",
+						":repo",
+						"issues"
+					],
+					"variable": [
+						{
+							"key": "user",
+							"value": "{{gitHubID}}"
+						},
+						{
+							"key": "repo",
+							"value": "{{repositoryName}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post issue comment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7fc304aa-afce-4b0f-bfbe-6290f93b8d04",
+						"exec": [
+							"pm.test(\"Issue comment correctly posted\", function(){\r",
+							"    const response = pm.response.json();\r",
+							"    pm.expect(response.body.length).to.greaterThan(3);\r",
+							"});\r",
+							"\r",
+							"pm.environment.unset(\"last_repo_issue_number\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{gitHubID}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{gitHubPassword}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"body\": \"Thank you for reporting this issue. I will look into it as soon as possible.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.github.com/repos/:user/:repo/issues/:issue_number/comments",
+					"protocol": "https",
+					"host": [
+						"api",
+						"github",
+						"com"
+					],
+					"path": [
+						"repos",
+						":user",
+						":repo",
+						"issues",
+						":issue_number",
+						"comments"
+					],
+					"variable": [
+						{
+							"key": "user",
+							"value": "{{gitHubID}}"
+						},
+						{
+							"key": "repo",
+							"value": "{{repositoryName}}"
+						},
+						{
+							"key": "issue_number",
+							"value": "{{last_repo_issue_number}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "44509e38-3992-4212-b410-8d62a87d40be",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "c75580bd-7d2d-4eb0-8049-ae31cd60e75e",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "ec58d96f-8b6a-43b1-aacc-5c337e36a9d9",
+			"key": "gitHubID",
+			"value": "ErlynLD"
+		},
+		{
+			"id": "df1c6861-de7e-4fa2-ac09-0d56cb8f6f7d",
+			"key": "gitHubPassword",
+			"value": "Git06HubErlyn"
+		},
+		{
+			"id": "50ca2096-530f-457f-8460-0ffd56da5e62",
+			"key": "repositoryID",
+			"value": "304177335"
+		},
+		{
+			"id": "6afe9d6e-dc87-4e73-9333-651be9f64a43",
+			"key": "repositoryName",
+			"value": "Test-Repo-last_OTP_Code-"
+		}
+	],
+	"protocolProfileBehavior": {}
+}
